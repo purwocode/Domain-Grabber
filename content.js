@@ -1,11 +1,13 @@
+// Satu kali "langkah": scrape halaman ini, cek captcha, lalu klik next kalau ada.
+// Loop lintas-halaman dijalankan dari popup.js (inject file ini berulang), karena klik #pnnext
+// menyebabkan full page navigation yang mematikan context script ini di tengah jalan.
 (async () => {
-  if (window.__alreadyRunning) return;
+  if (window.__alreadyRunning) return { domains: [], hasNext: false };
   window.__alreadyRunning = true;
 
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const collected = new Set();
   const excluded = ["google.com", "google.co.id", "youtube.com", "x.com", "wikipedia.org", "netflix.com", "spotify.com"];
-  let page = 1;
+  const collected = new Set();
 
   const logStatus = (text) => {
     console.log("[Scraper]", text);
@@ -41,25 +43,25 @@
     return hasText || hasRecaptcha;
   };
 
-  while (true) {
-    logStatus(`Scraping page ${page}...`);
+  logStatus("Scraping halaman ini...");
+  getLinks();
+
+  if (isCaptcha()) {
+    logStatus("CAPTCHA terdeteksi. Menunggu 10 detik...");
+    await sleep(10000);
     getLinks();
-
-    if (isCaptcha()) {
-      logStatus("CAPTCHA detected. Pausing 10s...");
-      await sleep(10000);
-    }
-
-    const btn = document.querySelector("#pnnext");
-    if (!btn) break;
-
-    btn.click();
-    page++;
-    await sleep(2000);
   }
 
-  logStatus(`Scraping complete. Found ${collected.size} domain(s).`);
+  const domains = Array.from(collected);
+  const nextBtn = document.querySelector("#pnnext");
 
-  // Simpan hasil ke window agar bisa diambil dari popup.js
-  window.__scrapedDomains = Array.from(collected);
+  if (nextBtn) {
+    logStatus(`${domains.length} domain ditemukan. Lanjut ke halaman berikutnya...`);
+    nextBtn.click();
+    return { domains, hasNext: true };
+  }
+
+  logStatus(`Selesai. ${domains.length} domain di halaman ini.`);
+  return { domains, hasNext: false };
 })();
+

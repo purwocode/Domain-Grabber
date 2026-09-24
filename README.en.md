@@ -8,6 +8,7 @@ Chrome extension (Manifest V3) that collects all unique domains from links (`<a 
 
 - **Scrape Current Page** — collect all unique domains from the currently active page.
 - **Next Page** — collect domains from the active page, then automatically click the "Next" button on Google search results (`#pnnext`) to move to the next page.
+- **Auto Scrape All Pages** — like Next Page but keeps going on its own, page after page (fixed delay between pages, CAPTCHA detection with an automatic 10s pause, on-page status overlay) until there's no next page or a 50-page cap is reached. Requires the popup to stay open and focused while it runs.
 - **Auto-save to Supabase** — optional, every time you scrape (Scrape Current Page / Next Page) domains are automatically sent to the Supabase table, no separate button needed (see [Supabase Integration](#supabase-integration)).
 - **View Dashboard** — open a separate tab ([dashboard.html](dashboard.html)) to display domains stored in Supabase with pagination (50 rows/page), search, a **Root Domain/Subdomain** filter, and export to `.txt`.
 - Scraped results are automatically merged (deduplicated) into a single textarea in the popup.
@@ -26,7 +27,7 @@ Chrome extension (Manifest V3) that collects all unique domains from links (`<a 
 1. Open the page you want to scrape (e.g. Google search results).
 2. Click the extension icon to open the popup.
 3. Click **Scrape Current Page** to collect domains from the current page only.
-4. Click **Next Page** to collect domains from the current page and move to the next results page (can be clicked repeatedly for multiple pages).
+4. Click **Next Page** to collect domains from the current page and move to the next results page (can be clicked repeatedly for multiple pages), or click **Auto Scrape All Pages** to keep going automatically without repeated clicks (keep the popup open until it finishes).
 5. Copy the results from the output textarea.
 
 ## File Structure
@@ -36,7 +37,7 @@ Chrome extension (Manifest V3) that collects all unique domains from links (`<a 
 | [manifest.json](manifest.json) | Extension configuration (Manifest V3), `scripting` & `activeTab` permissions, `<all_urls>` host permission. |
 | [popup.html](popup.html) | Popup UI: action buttons + result textarea. |
 | [popup.js](popup.js) | Popup button logic; injects the scrape function into the active tab via `chrome.scripting.executeScript`. |
-| [content.js](content.js) | Standalone script (automatic multi-page loop + CAPTCHA detection). **Not wired up** to the manifest/popup yet — currently not executed automatically. |
+| [content.js](content.js) | A single scrape+next step (scrape the active page, detect CAPTCHA, click `#pnnext`), repeatedly injected by [popup.js](popup.js) for the **Auto Scrape All Pages** button. |
 | [icon.png](icon.png) | Extension toolbar icon. |
 | `supabase-config.js` | Supabase credentials (`SUPABASE_URL`, `SUPABASE_ANON_KEY`). **Gitignored**, not committed. |
 | [supabase-config.example.js](supabase-config.example.js) | Template for Supabase credentials, to be copied to `supabase-config.js`. |
@@ -84,7 +85,7 @@ The **Save to Supabase** button no longer exists — domains from the output tex
 
 ## Notes
 
-- Google's "Next" button selector (`#pnnext`) can change at any time since Google frequently changes its search results HTML/class structure — if the "Next Page" button stops working, re-check this selector.
-- `content.js` contains an alternative version (automatic loop + CAPTCHA detection) that hasn't been wired into `content_scripts` in the manifest or called from the popup.
+- Google's "Next" button selector (`#pnnext`) can change at any time since Google frequently changes its search results HTML/class structure — if "Next Page"/"Auto Scrape All Pages" stops working, re-check this selector.
+- Clicking `#pnnext` triggers a full page navigation, which kills the script context running on that page. That's why the multi-page loop does **not** live inside [content.js](content.js) itself — it lives in [popup.js](popup.js), which re-injects `content.js` after each page finishes loading (a fixed 2.5s delay is used instead of navigation-event detection, to keep it simple).
 - Supabase anon keys are designed to be public, but must still be protected with Row Level Security (RLS) like the policies above — never use the `service_role` key in extension/client code.
 - The **Root Domain** filter shows domains that are already registrable domains (e.g. `example.co.id`), while **Subdomain** shows ones with an extra label in front (e.g. `www.example.co.id`). Classification uses [public_suffix_list.dat](public_suffix_list.dat) for accuracy on multi-label suffixes (`co.id`, `co.uk`, etc.), instead of just guessing "last 2 labels". Periodically refresh this file from [publicsuffix.org](https://publicsuffix.org/list/public_suffix_list.dat) when new TLDs/rules are added.

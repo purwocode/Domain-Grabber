@@ -123,3 +123,43 @@ document.getElementById("nextPage").addEventListener("click", () => {
 document.getElementById("openDashboard").addEventListener("click", () => {
   chrome.tabs.create({ url: chrome.runtime.getURL("dashboard.html") });
 });
+
+// Auto-scrape berturut-turut: inject content.js berulang (tiap navigasi mematikan context-nya,
+// jadi loop lintas-halaman dijalankan di sini, bukan di dalam content.js sendiri)
+document.getElementById("autoScrape").addEventListener("click", async () => {
+  const statusEl = document.getElementById("status");
+  const outputArea = document.getElementById("output");
+  const maxPages = 50;
+
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const combined = new Set(outputArea.value.split("\n").map(x => x.trim()).filter(Boolean));
+
+  for (let page = 1; page <= maxPages; page++) {
+    statusEl.textContent = `Auto-scrape halaman ${page}...`;
+
+    let result;
+    try {
+      const results = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ["content.js"]
+      });
+      result = results[0]?.result;
+    } catch (err) {
+      statusEl.textContent = `Auto-scrape berhenti di halaman ${page}: ${err.message}`;
+      break;
+    }
+
+    (result?.domains || []).forEach(d => combined.add(d));
+    outputArea.value = Array.from(combined).join("\n");
+    statusEl.textContent = `Halaman ${page}: total ${combined.size} domain.`;
+
+    saveDomainsToSupabase(Array.from(combined)).catch(() => { });
+
+    if (!result?.hasNext) {
+      statusEl.textContent = `Auto-scrape selesai. Total ${combined.size} domain dari ${page} halaman.`;
+      break;
+    }
+
+    await new Promise(r => setTimeout(r, 2500));
+  }
+});

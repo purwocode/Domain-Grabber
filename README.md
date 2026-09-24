@@ -8,6 +8,7 @@ Ekstensi Chrome (Manifest V3) untuk mengambil semua domain unik dari link (`<a h
 
 - **Scrape Current Page** — mengumpulkan semua domain unik dari halaman yang sedang aktif.
 - **Next Page** — mengumpulkan domain di halaman aktif, lalu otomatis mengklik tombol "Berikutnya" pada hasil pencarian Google (`#pnnext`) untuk lanjut ke halaman berikutnya.
+- **Auto Scrape All Pages** — sama seperti Next Page tapi otomatis lanjut sendiri halaman demi halaman (jeda antar halaman, deteksi CAPTCHA & auto-pause 10 detik, overlay status di halaman) sampai tidak ada halaman berikutnya atau maksimum 50 halaman. Perlu popup tetap terbuka & fokus selama proses berjalan.
 - **Auto-simpan ke Supabase** — opsional, setiap kali scrape (Scrape Current Page / Next Page) domain otomatis dikirim ke tabel Supabase, tanpa tombol terpisah (lihat [Integrasi Supabase](#integrasi-supabase)).
 - **Lihat Dashboard** — buka tab terpisah ([dashboard.html](dashboard.html)) untuk menampilkan domain yang tersimpan di Supabase dengan pagination (50 baris/halaman), pencarian, filter **Root Domain/Subdomain**, dan export ke `.txt`.
 - Hasil scrape digabung otomatis (deduplikasi) ke dalam satu textarea di popup.
@@ -26,7 +27,7 @@ Ekstensi Chrome (Manifest V3) untuk mengambil semua domain unik dari link (`<a h
 1. Buka halaman yang ingin di-scrape (mis. hasil pencarian Google).
 2. Klik ikon ekstensi untuk membuka popup.
 3. Klik **Scrape Current Page** untuk mengambil domain dari halaman saat ini saja.
-4. Klik **Next Page** untuk mengambil domain dari halaman saat ini sekaligus pindah ke halaman hasil berikutnya (bisa diklik berkali-kali untuk multi-halaman).
+4. Klik **Next Page** untuk mengambil domain dari halaman saat ini sekaligus pindah ke halaman hasil berikutnya (bisa diklik berkali-kali untuk multi-halaman), atau klik **Auto Scrape All Pages** supaya lanjut otomatis tanpa perlu klik berulang (biarkan popup tetap terbuka sampai selesai).
 5. Salin hasil dari textarea output.
 
 ## Struktur File
@@ -36,7 +37,7 @@ Ekstensi Chrome (Manifest V3) untuk mengambil semua domain unik dari link (`<a h
 | [manifest.json](manifest.json) | Konfigurasi ekstensi (Manifest V3), permission `scripting` & `activeTab`, host permission `<all_urls>`. |
 | [popup.html](popup.html) | Tampilan popup: tombol aksi + textarea hasil. |
 | [popup.js](popup.js) | Logika tombol popup; inject fungsi scrape ke tab aktif via `chrome.scripting.executeScript`. |
-| [content.js](content.js) | Script standalone (loop otomatis multi-halaman + deteksi CAPTCHA). **Belum terhubung** ke manifest/popup — saat ini tidak dieksekusi otomatis. |
+| [content.js](content.js) | Satu langkah scrape+next (scrape halaman aktif, deteksi CAPTCHA, klik `#pnnext`), di-inject berulang oleh [popup.js](popup.js) untuk tombol **Auto Scrape All Pages**. |
 | [icon.png](icon.png) | Ikon toolbar ekstensi. |
 | `supabase-config.js` | Kredensial Supabase (`SUPABASE_URL`, `SUPABASE_ANON_KEY`). **Di-gitignore**, tidak ikut ter-commit. |
 | [supabase-config.example.js](supabase-config.example.js) | Template kredensial Supabase untuk disalin jadi `supabase-config.js`. |
@@ -84,7 +85,7 @@ Tombol **Simpan ke Supabase** tidak ada lagi — domain dari textarea output oto
 
 ## Catatan
 
-- Selector tombol "Berikutnya" Google (`#pnnext`) bisa berubah sewaktu-waktu karena Google sering mengganti struktur HTML/class hasil pencariannya — jika tombol "Next Page" berhenti bekerja, cek ulang selector ini.
-- `content.js` berisi versi alternatif (loop otomatis + deteksi CAPTCHA) yang belum di-wire ke `content_scripts` di manifest maupun dipanggil dari popup.
+- Selector tombol "Berikutnya" Google (`#pnnext`) bisa berubah sewaktu-waktu karena Google sering mengganti struktur HTML/class hasil pencariannya — jika tombol "Next Page"/"Auto Scrape All Pages" berhenti bekerja, cek ulang selector ini.
+- Klik `#pnnext` menyebabkan full page navigation, yang mematikan context script yang sedang jalan di halaman itu. Karena itu loop multi-halaman **tidak** ditaruh di dalam [content.js](content.js) sendiri, melainkan di [popup.js](popup.js) yang meng-inject ulang `content.js` setelah tiap halaman selesai dimuat (jeda tetap 2.5 detik, bukan deteksi event navigasi, supaya sederhana).
 - Anon key Supabase memang didesain untuk publik, tapi tetap harus dilindungi lewat Row Level Security (RLS) seperti policy di atas — jangan pernah pakai `service_role` key di kode extension/client.
 - Filter **Root Domain** menampilkan domain yang sudah berupa domain terdaftar (mis. `example.co.id`), sedangkan **Subdomain** menampilkan yang punya label tambahan di depannya (mis. `www.example.co.id`). Klasifikasinya pakai [public_suffix_list.dat](public_suffix_list.dat) supaya akurat untuk suffix multi-label (`co.id`, `co.uk`, dll), bukan sekadar tebak "2 label terakhir". Update berkala file ini dari [publicsuffix.org](https://publicsuffix.org/list/public_suffix_list.dat) kalau ada TLD/aturan baru.
