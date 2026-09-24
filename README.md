@@ -8,7 +8,7 @@ Ekstensi Chrome (Manifest V3) untuk mengambil semua domain unik dari link (`<a h
 
 - **Scrape Current Page** — mengumpulkan semua domain unik dari halaman yang sedang aktif.
 - **Next Page** — mengumpulkan domain di halaman aktif, lalu otomatis mengklik tombol "Berikutnya" pada hasil pencarian Google (`#pnnext`) untuk lanjut ke halaman berikutnya.
-- **Simpan ke Supabase** — opsional, kirim domain hasil scrape ke tabel Supabase (lihat [Integrasi Supabase](#integrasi-supabase)).
+- **Auto-simpan ke Supabase** — opsional, setiap kali scrape (Scrape Current Page / Next Page) domain otomatis dikirim ke tabel Supabase, tanpa tombol terpisah (lihat [Integrasi Supabase](#integrasi-supabase)).
 - **Lihat Dashboard** — buka tab terpisah ([dashboard.html](dashboard.html)) untuk menampilkan seluruh domain yang tersimpan di Supabase, lengkap dengan pencarian & export ke `.txt`.
 - Hasil scrape digabung otomatis (deduplikasi) ke dalam satu textarea di popup.
 - Domain tertentu (mis. `google.com`, `youtube.com`, `facebook.com`, `instagram.com`, `x.com`, `wikipedia.org`) dikecualikan secara default — bisa diubah lewat array `exclude`/`excluded` di [popup.js](popup.js) dan [content.js](content.js).
@@ -44,7 +44,7 @@ Ekstensi Chrome (Manifest V3) untuk mengambil semua domain unik dari link (`<a h
 
 ## Integrasi Supabase
 
-Tombol **Simpan ke Supabase** mengirim domain dari textarea output ke tabel `domains` lewat REST API PostgREST bawaan Supabase (tanpa library tambahan, tetap patuh CSP Manifest V3).
+Tombol **Simpan ke Supabase** tidak ada lagi — domain dari textarea output otomatis terkirim ke tabel `domains` lewat REST API PostgREST bawaan Supabase setiap kali kamu scrape (tanpa library tambahan, tetap patuh CSP Manifest V3). Kalau `supabase-config.js` belum diisi, pengiriman ini otomatis dilewati (silent skip) tanpa mengganggu hasil scrape.
 
 1. Buat project di [supabase.com](https://supabase.com), buka **SQL Editor**, lalu jalankan:
 
@@ -74,7 +74,7 @@ Tombol **Simpan ke Supabase** mengirim domain dari textarea output ke tabel `dom
 
 2. Salin [supabase-config.example.js](supabase-config.example.js) menjadi `supabase-config.js`, isi `SUPABASE_URL` dan `SUPABASE_ANON_KEY` dari **Project Settings → API**.
 3. Reload extension di `chrome://extensions`.
-4. Klik **Simpan ke Supabase** setelah scrape untuk mengirim isi textarea ke database.
+4. Klik **Scrape Current Page** atau **Next Page** seperti biasa — domain otomatis terkirim ke Supabase, status pengiriman muncul di teks status popup.
 5. Klik **Lihat Dashboard** untuk membuka tab baru berisi seluruh domain yang tersimpan (bisa dicari dan di-export ulang ke `.txt`).
 
 `supabase-config.js` sudah masuk [.gitignore](.gitignore) supaya anon key tidak ikut ter-push ke repo publik.

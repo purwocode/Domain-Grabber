@@ -8,7 +8,7 @@ Chrome extension (Manifest V3) that collects all unique domains from links (`<a 
 
 - **Scrape Current Page** — collect all unique domains from the currently active page.
 - **Next Page** — collect domains from the active page, then automatically click the "Next" button on Google search results (`#pnnext`) to move to the next page.
-- **Save to Supabase** — optional, send scraped domains to a Supabase table (see [Supabase Integration](#supabase-integration)).
+- **Auto-save to Supabase** — optional, every time you scrape (Scrape Current Page / Next Page) domains are automatically sent to the Supabase table, no separate button needed (see [Supabase Integration](#supabase-integration)).
 - **View Dashboard** — open a separate tab ([dashboard.html](dashboard.html)) to display all domains stored in Supabase, complete with search & export to `.txt`.
 - Scraped results are automatically merged (deduplicated) into a single textarea in the popup.
 - Certain domains (e.g. `google.com`, `youtube.com`, `facebook.com`, `instagram.com`, `x.com`, `wikipedia.org`) are excluded by default — this can be changed via the `exclude`/`excluded` array in [popup.js](popup.js) and [content.js](content.js).
@@ -44,7 +44,7 @@ Chrome extension (Manifest V3) that collects all unique domains from links (`<a 
 
 ## Supabase Integration
 
-The **Save to Supabase** button sends domains from the output textarea to a `domains` table via Supabase's built-in PostgREST API (no extra library, still compliant with Manifest V3 CSP).
+The **Save to Supabase** button no longer exists — domains from the output textarea are automatically sent to the `domains` table via Supabase's built-in PostgREST API every time you scrape (no extra library, still compliant with Manifest V3 CSP). If `supabase-config.js` hasn't been filled in yet, sending is silently skipped without affecting the scrape result.
 
 1. Create a project at [supabase.com](https://supabase.com), open the **SQL Editor**, and run:
 
@@ -74,7 +74,7 @@ The **Save to Supabase** button sends domains from the output textarea to a `dom
 
 2. Copy [supabase-config.example.js](supabase-config.example.js) to `supabase-config.js`, then fill in `SUPABASE_URL` and `SUPABASE_ANON_KEY` from **Project Settings → API**.
 3. Reload the extension in `chrome://extensions`.
-4. Click **Save to Supabase** after scraping to send the textarea contents to the database.
+4. Click **Scrape Current Page** or **Next Page** as usual — domains are sent to Supabase automatically, and the send result shows up in the popup's status text.
 5. Click **View Dashboard** to open a new tab with all stored domains (searchable and re-exportable to `.txt`).
 
 `supabase-config.js` is already in [.gitignore](.gitignore) so the anon key doesn't get pushed to a public repo.
