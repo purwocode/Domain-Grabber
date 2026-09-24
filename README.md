@@ -1,5 +1,7 @@
 # Domain Scraper
 
+> Bahasa Indonesia | [English](README.en.md)
+
 Ekstensi Chrome (Manifest V3) untuk mengambil semua domain unik dari link (`<a href>`) yang ada di tab aktif, termasuk dukungan paginasi hasil pencarian Google.
 
 ## Fitur
