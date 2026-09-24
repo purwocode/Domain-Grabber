@@ -2,7 +2,7 @@
 function scrapeSinglePage() {
   const hrefSet = new Set();
   const domainSet = new Set();
-  const exclude = ["google.com", "google.co.id", "google", "youtube.com", "sr.toolsminati.com", "facebook.com", "instagram.com", "x.com", "wikipedia.org", "netflix.com", "spotify.com", "chatgpt.com", "openai.com", "claude.ai", "claude.com", "anthropic.com", "copilot.microsoft.com", "perplexity.ai", "character.ai", "poe.com", "deepseek.com", "grok.com", "huggingface.co"];
+  const exclude = ["google.com", "google.co.id", "google", "youtube.com", "sr.toolsminati.com", "facebook.com", "instagram.com", "x.com", "wikipedia.org", "netflix.com", "spotify.com", "chatgpt.com", "openai.com", "claude.ai", "claude.com", "anthropic.com", "microsoft.com", "apple.com", "yahoo.com", "perplexity.ai", "character.ai", "poe.com", "deepseek.com", "grok.com", "huggingface.co"];
 
   document.querySelectorAll("a").forEach(a => {
     const href = a.getAttribute("href");
@@ -74,7 +74,7 @@ document.getElementById("nextPage").addEventListener("click", () => {
       func: async () => {
         const hrefSet = new Set();
         const domainSet = new Set();
-        const exclude = ["google.com", "google.co.id", "google", "youtube.com", "sr.toolsminati.com", "facebook.com", "instagram.com", "x.com", "wikipedia.org", "netflix.com", "spotify.com", "chatgpt.com", "openai.com", "claude.ai", "claude.com", "anthropic.com", "copilot.microsoft.com", "perplexity.ai", "character.ai", "poe.com", "deepseek.com", "grok.com", "huggingface.co"];
+        const exclude = ["google.com", "google.co.id", "google", "youtube.com", "sr.toolsminati.com", "facebook.com", "instagram.com", "x.com", "wikipedia.org", "netflix.com", "spotify.com", "chatgpt.com", "openai.com", "claude.ai", "claude.com", "anthropic.com", "microsoft.com", "apple.com", "yahoo.com", "perplexity.ai", "character.ai", "poe.com", "deepseek.com", "grok.com", "huggingface.co"];
 
         const anchors = Array.from(document.querySelectorAll("a"));
         anchors.forEach(a => {
