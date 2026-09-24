@@ -9,7 +9,7 @@ Chrome extension (Manifest V3) that collects all unique domains from links (`<a 
 - **Scrape Current Page** — collect all unique domains from the currently active page.
 - **Next Page** — collect domains from the active page, then automatically click the "Next" button on Google search results (`#pnnext`) to move to the next page.
 - **Auto-save to Supabase** — optional, every time you scrape (Scrape Current Page / Next Page) domains are automatically sent to the Supabase table, no separate button needed (see [Supabase Integration](#supabase-integration)).
-- **View Dashboard** — open a separate tab ([dashboard.html](dashboard.html)) to display domains stored in Supabase with pagination (50 rows/page), search, and export to `.txt`.
+- **View Dashboard** — open a separate tab ([dashboard.html](dashboard.html)) to display domains stored in Supabase with pagination (50 rows/page), search, a **Root Domain/Subdomain** filter, and export to `.txt`.
 - Scraped results are automatically merged (deduplicated) into a single textarea in the popup.
 - Certain domains (e.g. `google.com`, `youtube.com`, `facebook.com`, `instagram.com`, `x.com`, `wikipedia.org`, `netflix.com`, `spotify.com`) are excluded by default — this can be changed via the `exclude`/`excluded` array in [popup.js](popup.js) and [content.js](content.js).
 
@@ -39,8 +39,10 @@ Chrome extension (Manifest V3) that collects all unique domains from links (`<a 
 | [icon.png](icon.png) | Extension toolbar icon. |
 | `supabase-config.js` | Supabase credentials (`SUPABASE_URL`, `SUPABASE_ANON_KEY`). **Gitignored**, not committed. |
 | [supabase-config.example.js](supabase-config.example.js) | Template for Supabase credentials, to be copied to `supabase-config.js`. |
-| [dashboard.html](dashboard.html) | Dashboard page (separate tab) to view, search, and export domains stored in Supabase, with pagination. |
-| [dashboard.js](dashboard.js) | Fetch logic (server-side pagination via PostgREST `Range` header) + render + search + export for the dashboard. |
+| [dashboard.html](dashboard.html) | Dashboard page (separate tab) to view, search, filter by root/subdomain, and export domains stored in Supabase, with pagination. |
+| [dashboard.js](dashboard.js) | Fetch logic (server-side pagination via PostgREST `Range` header) + render + search + filter + export for the dashboard. |
+| [psl.js](psl.js) | [Public Suffix List](https://publicsuffix.org/list/public_suffix_list.dat) parser + `classifyDomain()` function to determine root domain vs subdomain. |
+| [public_suffix_list.dat](public_suffix_list.dat) | Raw Public Suffix List data (bundled locally, read by [psl.js](psl.js) via `chrome.runtime.getURL`, no internet connection needed). |
 
 ## Supabase Integration
 
@@ -84,3 +86,4 @@ The **Save to Supabase** button no longer exists — domains from the output tex
 - Google's "Next" button selector (`#pnnext`) can change at any time since Google frequently changes its search results HTML/class structure — if the "Next Page" button stops working, re-check this selector.
 - `content.js` contains an alternative version (automatic loop + CAPTCHA detection) that hasn't been wired into `content_scripts` in the manifest or called from the popup.
 - Supabase anon keys are designed to be public, but must still be protected with Row Level Security (RLS) like the policies above — never use the `service_role` key in extension/client code.
+- The **Root Domain** filter shows domains that are already registrable domains (e.g. `example.co.id`), while **Subdomain** shows ones with an extra label in front (e.g. `www.example.co.id`). Classification uses [public_suffix_list.dat](public_suffix_list.dat) for accuracy on multi-label suffixes (`co.id`, `co.uk`, etc.), instead of just guessing "last 2 labels". Periodically refresh this file from [publicsuffix.org](https://publicsuffix.org/list/public_suffix_list.dat) when new TLDs/rules are added.

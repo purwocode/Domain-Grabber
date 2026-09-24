@@ -1,6 +1,7 @@
 const statusEl = document.getElementById("status");
 const tbody = document.getElementById("domainsBody");
 const searchInput = document.getElementById("search");
+const typeFilterEl = document.getElementById("typeFilter");
 const pageInfoEl = document.getElementById("pageInfo");
 const prevBtn = document.getElementById("prevPage");
 const nextBtn = document.getElementById("nextPage");
@@ -45,6 +46,40 @@ function buildFilterQuery() {
     return query;
 }
 
+// Ambil SEMUA baris yang cocok filter pencarian, diambil per-batch (dipakai untuk filter root/sub & export)
+async function fetchAllMatching() {
+    const batchSize = 1000;
+    const rows = [];
+    let offset = 0;
+
+    while (true) {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/domains?${buildFilterQuery()}`, {
+            headers: {
+                "apikey": SUPABASE_ANON_KEY,
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                "Range-Unit": "items",
+                "Range": `${offset}-${offset + batchSize - 1}`
+            }
+        });
+
+        if (!res.ok) throw new Error(await res.text() || res.statusText);
+
+        const batch = await res.json();
+        rows.push(...batch);
+        if (batch.length < batchSize) break;
+        offset += batchSize;
+    }
+
+    return rows;
+}
+
+// "all" -> tidak difilter; "root"/"sub" -> diklasifikasi lewat Public Suffix List
+function matchesTypeFilter(row) {
+    const type = typeFilterEl.value;
+    if (type === "all") return true;
+    return classifyDomain(row.domain).isRoot === (type === "root");
+}
+
 function updatePagination() {
     const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
     pageInfoEl.textContent = `Halaman ${currentPage + 1} dari ${totalPages} (${totalCount} domain)`;
@@ -60,24 +95,34 @@ async function loadDomains() {
 
     statusEl.textContent = "Memuat domain...";
 
-    const from = currentPage * PAGE_SIZE;
-    const to = from + PAGE_SIZE - 1;
-
     try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/domains?${buildFilterQuery()}`, {
-            headers: {
-                "apikey": SUPABASE_ANON_KEY,
-                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-                "Range-Unit": "items",
-                "Range": `${from}-${to}`,
-                "Prefer": "count=exact"
-            }
-        });
+        await loadPublicSuffixList();
 
-        if (!res.ok) throw new Error(await res.text() || res.statusText);
+        if (typeFilterEl.value === "all") {
+            // Filter "Semua" cukup pagination server-side, lebih ringan untuk data banyak
+            const from = currentPage * PAGE_SIZE;
+            const to = from + PAGE_SIZE - 1;
 
-        allRows = await res.json();
-        totalCount = parseInt(res.headers.get("content-range")?.split("/")[1], 10) || allRows.length;
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/domains?${buildFilterQuery()}`, {
+                headers: {
+                    "apikey": SUPABASE_ANON_KEY,
+                    "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                    "Range-Unit": "items",
+                    "Range": `${from}-${to}`,
+                    "Prefer": "count=exact"
+                }
+            });
+
+            if (!res.ok) throw new Error(await res.text() || res.statusText);
+
+            allRows = await res.json();
+            totalCount = parseInt(res.headers.get("content-range")?.split("/")[1], 10) || allRows.length;
+        } else {
+            // Filter root/subdomain butuh klasifikasi PSL per baris, jadi ambil semua yang cocok pencarian dulu
+            const matched = (await fetchAllMatching()).filter(matchesTypeFilter);
+            totalCount = matched.length;
+            allRows = matched.slice(currentPage * PAGE_SIZE, currentPage * PAGE_SIZE + PAGE_SIZE);
+        }
 
         renderRows(allRows);
         updatePagination();
@@ -93,6 +138,11 @@ searchInput.addEventListener("input", () => {
         currentPage = 0;
         loadDomains();
     }, 300);
+});
+
+typeFilterEl.addEventListener("change", () => {
+    currentPage = 0;
+    loadDomains();
 });
 
 prevBtn.addEventListener("click", () => {
@@ -127,7 +177,7 @@ document.getElementById("removeDuplicate").addEventListener("click", () => {
     statusEl.textContent = `${before - allRows.length} duplikat dihapus pada halaman ini.`;
 });
 
-// Export ambil SEMUA baris yang cocok filter pencarian (bukan cuma halaman aktif), diambil per-batch
+// Export ambil SEMUA baris yang cocok pencarian + filter root/subdomain yang lagi aktif di dropdown
 document.getElementById("exportTxt").addEventListener("click", async () => {
     if (!isConfigured()) {
         statusEl.textContent = "Isi dulu SUPABASE_URL & SUPABASE_ANON_KEY di supabase-config.js.";
@@ -137,27 +187,8 @@ document.getElementById("exportTxt").addEventListener("click", async () => {
     statusEl.textContent = "Menyiapkan file export...";
 
     try {
-        const batchSize = 1000;
-        const domains = [];
-        let offset = 0;
-
-        while (true) {
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/domains?${buildFilterQuery()}`, {
-                headers: {
-                    "apikey": SUPABASE_ANON_KEY,
-                    "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-                    "Range-Unit": "items",
-                    "Range": `${offset}-${offset + batchSize - 1}`
-                }
-            });
-
-            if (!res.ok) throw new Error(await res.text() || res.statusText);
-
-            const batch = await res.json();
-            domains.push(...batch.map(r => r.domain));
-            if (batch.length < batchSize) break;
-            offset += batchSize;
-        }
+        await loadPublicSuffixList();
+        const domains = (await fetchAllMatching()).filter(matchesTypeFilter).map(r => r.domain);
 
         const blob = new Blob([domains.join("\n")], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
@@ -174,4 +205,5 @@ document.getElementById("exportTxt").addEventListener("click", async () => {
 });
 
 loadDomains();
+
 

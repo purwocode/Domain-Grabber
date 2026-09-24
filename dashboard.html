@@ -64,6 +64,11 @@
     <h1>Domain Dashboard</h1>
     <div class="toolbar">
         <input id="search" type="text" placeholder="Cari domain...">
+        <select id="typeFilter">
+            <option value="all">Semua</option>
+            <option value="root">Root Domain</option>
+            <option value="sub">Subdomain</option>
+        </select>
         <button id="refresh">Refresh</button>
         <button id="removeDuplicate">Remove Duplicate</button>
         <button id="exportTxt">Export .txt</button>
@@ -85,6 +90,7 @@
     </div>
 
     <script src="supabase-config.js"></script>
+    <script src="psl.js"></script>
     <script src="dashboard.js"></script>
 </body>
 
