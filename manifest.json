@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Domain Scraper",
+  "version": "1.0",
+  "description": "Scrape all unique domains from links in current tab with pagination",
+  "permissions": ["scripting", "activeTab"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon.png"
+    }
+  }
+}
