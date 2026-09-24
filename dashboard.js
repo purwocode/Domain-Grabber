@@ -59,6 +59,22 @@ searchInput.addEventListener("input", () => {
 
 document.getElementById("refresh").addEventListener("click", loadDomains);
 
+// Dedupe baris yang sedang ditampilkan (client-side saja, tabel domains punya constraint unique)
+document.getElementById("removeDuplicate").addEventListener("click", () => {
+    const seen = new Set();
+    const before = allRows.length;
+
+    allRows = allRows.filter(row => {
+        const key = row.domain.trim().toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+
+    renderRows(allRows);
+    statusEl.textContent = `${before - allRows.length} duplikat dihapus. Total ${allRows.length} domain.`;
+});
+
 document.getElementById("exportTxt").addEventListener("click", () => {
     const text = allRows.map(r => r.domain).join("\n");
     const blob = new Blob([text], { type: "text/plain" });
