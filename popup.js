@@ -128,3 +128,13 @@ document.getElementById("saveSupabase").addEventListener("click", async () => {
 document.getElementById("openDashboard").addEventListener("click", () => {
   chrome.tabs.create({ url: chrome.runtime.getURL("dashboard.html") });
 });
+
+// Hapus baris kosong & duplikat pada textarea output
+document.getElementById("removeDuplicate").addEventListener("click", () => {
+  const outputArea = document.getElementById("output");
+  const lines = outputArea.value.split("\n").map(x => x.trim()).filter(Boolean);
+  const unique = Array.from(new Set(lines));
+  outputArea.value = unique.join("\n");
+
+  document.getElementById("status").textContent = `${lines.length - unique.length} duplikat dihapus. Total ${unique.length} domain.`;
+});
