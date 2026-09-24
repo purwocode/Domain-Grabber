@@ -11,6 +11,7 @@ Ekstensi Chrome (Manifest V3) untuk mengambil semua domain unik dari link (`<a h
 - **Auto-simpan ke Supabase** — opsional, setiap kali scrape (Scrape Current Page / Next Page) domain otomatis dikirim ke tabel Supabase, tanpa tombol terpisah (lihat [Integrasi Supabase](#integrasi-supabase)).
 - **Lihat Dashboard** — buka tab terpisah ([dashboard.html](dashboard.html)) untuk menampilkan domain yang tersimpan di Supabase dengan pagination (50 baris/halaman), pencarian, filter **Root Domain/Subdomain**, dan export ke `.txt`.
 - Hasil scrape digabung otomatis (deduplikasi) ke dalam satu textarea di popup.
+- Prefix `www.` otomatis dibuang saat scrape (mis. `www.example.com` → `example.com`) supaya domain & subdomain tersimpan rapi dan tidak dobel dengan versi non-www-nya.
 - Domain tertentu (mis. `google.com`, `youtube.com`, `facebook.com`, `instagram.com`, `x.com`, `wikipedia.org`, `netflix.com`, `spotify.com`) dikecualikan secara default — bisa diubah lewat array `exclude`/`excluded` di [popup.js](popup.js) dan [content.js](content.js).
 
 ## Instalasi (Load Unpacked)

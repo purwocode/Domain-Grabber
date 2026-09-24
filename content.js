@@ -25,7 +25,7 @@
       try {
         const href = a.href;
         const url = new URL(href);
-        const domain = url.hostname;
+        const domain = url.hostname.replace(/^www\./, "");
         const excludedMatch = excluded.some(ex => domain === ex || domain.endsWith("." + ex));
         if (!excludedMatch) {
           collected.add(domain);

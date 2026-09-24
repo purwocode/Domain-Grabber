@@ -9,7 +9,7 @@ function scrapeSinglePage() {
     if (!href || hrefSet.has(href)) return;
     hrefSet.add(href);
     try {
-      const domain = new URL(href, window.location.href).hostname;
+      const domain = new URL(href, window.location.href).hostname.replace(/^www\./, "");
       const isExcluded = exclude.some(ex => domain === ex || domain.endsWith("." + ex));
       if (!isExcluded) domainSet.add(domain);
     } catch { }
@@ -83,7 +83,7 @@ document.getElementById("nextPage").addEventListener("click", () => {
           hrefSet.add(href);
           try {
             const url = new URL(href, window.location.href);
-            const domain = url.hostname;
+            const domain = url.hostname.replace(/^www\./, "");
             const isExcluded = exclude.some(ex => domain === ex || domain.endsWith("." + ex));
             if (!isExcluded) domainSet.add(domain);
           } catch { }
