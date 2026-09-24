@@ -123,3 +123,8 @@ document.getElementById("saveSupabase").addEventListener("click", async () => {
     statusEl.textContent = `Gagal simpan ke Supabase: ${err.message}`;
   }
 });
+
+// Buka halaman dashboard (tab baru) untuk melihat domain yang tersimpan di Supabase
+document.getElementById("openDashboard").addEventListener("click", () => {
+  chrome.tabs.create({ url: chrome.runtime.getURL("dashboard.html") });
+});

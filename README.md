@@ -7,6 +7,7 @@ Ekstensi Chrome (Manifest V3) untuk mengambil semua domain unik dari link (`<a h
 - **Scrape Current Page** — mengumpulkan semua domain unik dari halaman yang sedang aktif.
 - **Next Page** — mengumpulkan domain di halaman aktif, lalu otomatis mengklik tombol "Berikutnya" pada hasil pencarian Google (`#pnnext`) untuk lanjut ke halaman berikutnya.
 - **Simpan ke Supabase** — opsional, kirim domain hasil scrape ke tabel Supabase (lihat [Integrasi Supabase](#integrasi-supabase)).
+- **Lihat Dashboard** — buka tab terpisah ([dashboard.html](dashboard.html)) untuk menampilkan seluruh domain yang tersimpan di Supabase, lengkap dengan pencarian & export ke `.txt`.
 - Hasil scrape digabung otomatis (deduplikasi) ke dalam satu textarea di popup.
 - Domain tertentu (mis. `google.com`, `youtube.com`, `facebook.com`, `instagram.com`, `x.com`, `wikipedia.org`) dikecualikan secara default — bisa diubah lewat array `exclude`/`excluded` di [popup.js](popup.js) dan [content.js](content.js).
 
@@ -36,6 +37,8 @@ Ekstensi Chrome (Manifest V3) untuk mengambil semua domain unik dari link (`<a h
 | [icon.png](icon.png) | Ikon toolbar ekstensi. |
 | `supabase-config.js` | Kredensial Supabase (`SUPABASE_URL`, `SUPABASE_ANON_KEY`). **Di-gitignore**, tidak ikut ter-commit. |
 | [supabase-config.example.js](supabase-config.example.js) | Template kredensial Supabase untuk disalin jadi `supabase-config.js`. |
+| [dashboard.html](dashboard.html) | Halaman dashboard (tab terpisah) untuk melihat, mencari, dan export domain yang tersimpan di Supabase. |
+| [dashboard.js](dashboard.js) | Logika fetch + render + search + export untuk dashboard. |
 
 ## Integrasi Supabase
 
@@ -57,13 +60,20 @@ Tombol **Simpan ke Supabase** mengirim domain dari textarea output ke tabel `dom
      for insert
      to anon
      with check (true);
+
+   create policy "anon can read domains"
+     on public.domains
+     for select
+     to anon
+     using (true);
    ```
 
-   Constraint `unique` pada `domain` membuat insert duplikat otomatis di-skip (`on_conflict=domain` + header `Prefer: resolution=ignore-duplicates`). Policy RLS di atas sengaja hanya mengizinkan `insert` (tanpa `select`), supaya anon key yang tertanam di extension tidak bisa dipakai membaca seluruh isi tabel.
+   Constraint `unique` pada `domain` membuat insert duplikat otomatis di-skip (`on_conflict=domain` + header `Prefer: resolution=ignore-duplicates`). Dua policy RLS di atas hanya mengizinkan `insert` dan `select` (tanpa `update`/`delete`) — `select` dibutuhkan supaya [dashboard.html](dashboard.html) bisa menampilkan daftar domain. Konsekuensinya, siapa pun yang mengekstrak anon key dari kode extension juga bisa membaca seluruh isi tabel `domains` — jangan simpan data sensitif di tabel ini.
 
 2. Salin [supabase-config.example.js](supabase-config.example.js) menjadi `supabase-config.js`, isi `SUPABASE_URL` dan `SUPABASE_ANON_KEY` dari **Project Settings → API**.
 3. Reload extension di `chrome://extensions`.
 4. Klik **Simpan ke Supabase** setelah scrape untuk mengirim isi textarea ke database.
+5. Klik **Lihat Dashboard** untuk membuka tab baru berisi seluruh domain yang tersimpan (bisa dicari dan di-export ulang ke `.txt`).
 
 `supabase-config.js` sudah masuk [.gitignore](.gitignore) supaya anon key tidak ikut ter-push ke repo publik.
 

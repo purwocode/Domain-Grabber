@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Domain Scraper - Dashboard</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 20px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        #search {
+            flex: 1;
+            padding: 6px 8px;
+        }
+
+        button {
+            padding: 6px 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 6px 8px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        #status {
+            font-weight: bold;
+            color: green;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Domain Dashboard</h1>
+    <div class="toolbar">
+        <input id="search" type="text" placeholder="Cari domain...">
+        <button id="refresh">Refresh</button>
+        <button id="exportTxt">Export .txt</button>
+    </div>
+    <div id="status"></div>
+    <table>
+        <thead>
+            <tr>
+                <th>Domain</th>
+                <th>Disimpan pada</th>
+            </tr>
+        </thead>
+        <tbody id="domainsBody"></tbody>
+    </table>
+
+    <script src="supabase-config.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+
+</html>
