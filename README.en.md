@@ -11,7 +11,7 @@ Chrome extension (Manifest V3) that collects all unique domains from links (`<a 
 - **Auto-save to Supabase** — optional, every time you scrape (Scrape Current Page / Next Page) domains are automatically sent to the Supabase table, no separate button needed (see [Supabase Integration](#supabase-integration)).
 - **View Dashboard** — open a separate tab ([dashboard.html](dashboard.html)) to display all domains stored in Supabase, complete with search & export to `.txt`.
 - Scraped results are automatically merged (deduplicated) into a single textarea in the popup.
-- Certain domains (e.g. `google.com`, `youtube.com`, `facebook.com`, `instagram.com`, `x.com`, `wikipedia.org`) are excluded by default — this can be changed via the `exclude`/`excluded` array in [popup.js](popup.js) and [content.js](content.js).
+- Certain domains (e.g. `google.com`, `youtube.com`, `facebook.com`, `instagram.com`, `x.com`, `wikipedia.org`, `netflix.com`, `spotify.com`) are excluded by default — this can be changed via the `exclude`/`excluded` array in [popup.js](popup.js) and [content.js](content.js).
 
 ## Installation (Load Unpacked)
 

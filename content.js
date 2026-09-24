@@ -4,7 +4,7 @@
 
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
   const collected = new Set();
-  const excluded = ["google.com", "google.co.id", "youtube.com", "x.com", "wikipedia.org"];
+  const excluded = ["google.com", "google.co.id", "youtube.com", "x.com", "wikipedia.org", "netflix.com", "spotify.com"];
   let page = 1;
 
   const logStatus = (text) => {
