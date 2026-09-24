@@ -2,7 +2,7 @@
 function scrapeSinglePage() {
   const hrefSet = new Set();
   const domainSet = new Set();
-  const exclude = ["google.com", "google.co.id", "youtube.com", "sr.toolsminati.com", "facebook.com", "instagram.com"];
+  const exclude = ["google.com", "google.co.id", "youtube.com", "sr.toolsminati.com", "facebook.com", "instagram.com", "x.com", "wikipedia.org"];
 
   document.querySelectorAll("a").forEach(a => {
     const href = a.getAttribute("href");
@@ -46,7 +46,7 @@ document.getElementById("nextPage").addEventListener("click", () => {
       func: async () => {
         const hrefSet = new Set();
         const domainSet = new Set();
-        const exclude = ["google.com", "google.co.id", "youtube.com", "sr.toolsminati.com", "facebook.com", "instagram.com"];
+        const exclude = ["google.com", "google.co.id", "youtube.com", "sr.toolsminati.com", "facebook.com", "instagram.com", "x.com", "wikipedia.org"];
 
         const anchors = Array.from(document.querySelectorAll("a"));
         anchors.forEach(a => {
