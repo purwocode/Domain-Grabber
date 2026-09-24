@@ -7,7 +7,7 @@
 
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
   // Harus sinkron manual dengan exclude di popup.js (tidak ada build step/shared module)
-  const excluded = ["google.com", "google.co.id", "youtube.com", "sr.toolsminati.com", "facebook.com", "instagram.com", "x.com", "wikipedia.org", "netflix.com", "spotify.com"];
+  const excluded = ["google.com", "google.co.id", "youtube.com", "sr.toolsminati.com", "facebook.com", "instagram.com", "x.com", "wikipedia.org", "netflix.com", "spotify.com", "chatgpt.com", "openai.com", "claude.ai", "anthropic.com", "copilot.microsoft.com", "perplexity.ai", "character.ai", "poe.com", "deepseek.com", "grok.com", "huggingface.co"];
   const collected = new Set();
 
   const logStatus = (text) => {
