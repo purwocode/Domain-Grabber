@@ -86,3 +86,40 @@ document.getElementById("nextPage").addEventListener("click", () => {
     });
   });
 });
+
+// Kirim domain dari textarea output ke tabel "domains" di Supabase (butuh supabase-config.js)
+document.getElementById("saveSupabase").addEventListener("click", async () => {
+  const statusEl = document.getElementById("status");
+  const domains = document.getElementById("output").value.split("\n").map(d => d.trim()).filter(Boolean);
+
+  if (!domains.length) {
+    statusEl.textContent = "Tidak ada domain untuk disimpan.";
+    return;
+  }
+  if (typeof SUPABASE_URL === "undefined" || typeof SUPABASE_ANON_KEY === "undefined" ||
+    SUPABASE_URL.includes("YOUR_PROJECT") || SUPABASE_ANON_KEY.includes("YOUR_ANON")) {
+    statusEl.textContent = "Isi dulu SUPABASE_URL & SUPABASE_ANON_KEY di supabase-config.js.";
+    return;
+  }
+
+  statusEl.textContent = `Menyimpan ${domains.length} domain ke Supabase...`;
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/domains?on_conflict=domain`, {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        "Prefer": "resolution=ignore-duplicates"
+      },
+      body: JSON.stringify(domains.map(domain => ({ domain })))
+    });
+
+    if (!res.ok) throw new Error(await res.text() || res.statusText);
+
+    statusEl.textContent = `Tersimpan ke Supabase: ${domains.length} domain.`;
+  } catch (err) {
+    statusEl.textContent = `Gagal simpan ke Supabase: ${err.message}`;
+  }
+});
