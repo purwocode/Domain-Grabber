@@ -49,6 +49,14 @@
             color: green;
             margin-bottom: 10px;
         }
+
+        .pagination {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: center;
+            margin-top: 12px;
+        }
     </style>
 </head>
 
@@ -70,6 +78,11 @@
         </thead>
         <tbody id="domainsBody"></tbody>
     </table>
+    <div class="pagination">
+        <button id="prevPage">&laquo; Sebelumnya</button>
+        <span id="pageInfo"></span>
+        <button id="nextPage">Berikutnya &raquo;</button>
+    </div>
 
     <script src="supabase-config.js"></script>
     <script src="dashboard.js"></script>

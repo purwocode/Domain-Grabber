@@ -9,7 +9,7 @@ Ekstensi Chrome (Manifest V3) untuk mengambil semua domain unik dari link (`<a h
 - **Scrape Current Page** — mengumpulkan semua domain unik dari halaman yang sedang aktif.
 - **Next Page** — mengumpulkan domain di halaman aktif, lalu otomatis mengklik tombol "Berikutnya" pada hasil pencarian Google (`#pnnext`) untuk lanjut ke halaman berikutnya.
 - **Auto-simpan ke Supabase** — opsional, setiap kali scrape (Scrape Current Page / Next Page) domain otomatis dikirim ke tabel Supabase, tanpa tombol terpisah (lihat [Integrasi Supabase](#integrasi-supabase)).
-- **Lihat Dashboard** — buka tab terpisah ([dashboard.html](dashboard.html)) untuk menampilkan seluruh domain yang tersimpan di Supabase, lengkap dengan pencarian & export ke `.txt`.
+- **Lihat Dashboard** — buka tab terpisah ([dashboard.html](dashboard.html)) untuk menampilkan domain yang tersimpan di Supabase dengan pagination (50 baris/halaman), pencarian, dan export ke `.txt`.
 - Hasil scrape digabung otomatis (deduplikasi) ke dalam satu textarea di popup.
 - Domain tertentu (mis. `google.com`, `youtube.com`, `facebook.com`, `instagram.com`, `x.com`, `wikipedia.org`, `netflix.com`, `spotify.com`) dikecualikan secara default — bisa diubah lewat array `exclude`/`excluded` di [popup.js](popup.js) dan [content.js](content.js).
 
@@ -39,8 +39,8 @@ Ekstensi Chrome (Manifest V3) untuk mengambil semua domain unik dari link (`<a h
 | [icon.png](icon.png) | Ikon toolbar ekstensi. |
 | `supabase-config.js` | Kredensial Supabase (`SUPABASE_URL`, `SUPABASE_ANON_KEY`). **Di-gitignore**, tidak ikut ter-commit. |
 | [supabase-config.example.js](supabase-config.example.js) | Template kredensial Supabase untuk disalin jadi `supabase-config.js`. |
-| [dashboard.html](dashboard.html) | Halaman dashboard (tab terpisah) untuk melihat, mencari, dan export domain yang tersimpan di Supabase. |
-| [dashboard.js](dashboard.js) | Logika fetch + render + search + export untuk dashboard. |
+| [dashboard.html](dashboard.html) | Halaman dashboard (tab terpisah) untuk melihat, mencari, dan export domain yang tersimpan di Supabase, dengan pagination. |
+| [dashboard.js](dashboard.js) | Logika fetch (pagination server-side via `Range` header PostgREST) + render + search + export untuk dashboard. |
 
 ## Integrasi Supabase
 
@@ -75,7 +75,7 @@ Tombol **Simpan ke Supabase** tidak ada lagi — domain dari textarea output oto
 2. Salin [supabase-config.example.js](supabase-config.example.js) menjadi `supabase-config.js`, isi `SUPABASE_URL` dan `SUPABASE_ANON_KEY` dari **Project Settings → API**.
 3. Reload extension di `chrome://extensions`.
 4. Klik **Scrape Current Page** atau **Next Page** seperti biasa — domain otomatis terkirim ke Supabase, status pengiriman muncul di teks status popup.
-5. Klik **Lihat Dashboard** untuk membuka tab baru berisi seluruh domain yang tersimpan (bisa dicari dan di-export ulang ke `.txt`).
+5. Klik **Lihat Dashboard** untuk membuka tab baru berisi domain yang tersimpan, dimuat per halaman (50 baris) supaya tetap ringan meski datanya banyak — bisa dicari (server-side) dan di-export ulang ke `.txt` (export mengambil semua baris yang cocok, bukan cuma halaman yang sedang tampil).
 
 `supabase-config.js` sudah masuk [.gitignore](.gitignore) supaya anon key tidak ikut ter-push ke repo publik.
 

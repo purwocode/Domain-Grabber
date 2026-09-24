@@ -9,7 +9,7 @@ Chrome extension (Manifest V3) that collects all unique domains from links (`<a 
 - **Scrape Current Page** — collect all unique domains from the currently active page.
 - **Next Page** — collect domains from the active page, then automatically click the "Next" button on Google search results (`#pnnext`) to move to the next page.
 - **Auto-save to Supabase** — optional, every time you scrape (Scrape Current Page / Next Page) domains are automatically sent to the Supabase table, no separate button needed (see [Supabase Integration](#supabase-integration)).
-- **View Dashboard** — open a separate tab ([dashboard.html](dashboard.html)) to display all domains stored in Supabase, complete with search & export to `.txt`.
+- **View Dashboard** — open a separate tab ([dashboard.html](dashboard.html)) to display domains stored in Supabase with pagination (50 rows/page), search, and export to `.txt`.
 - Scraped results are automatically merged (deduplicated) into a single textarea in the popup.
 - Certain domains (e.g. `google.com`, `youtube.com`, `facebook.com`, `instagram.com`, `x.com`, `wikipedia.org`, `netflix.com`, `spotify.com`) are excluded by default — this can be changed via the `exclude`/`excluded` array in [popup.js](popup.js) and [content.js](content.js).
 
@@ -39,8 +39,8 @@ Chrome extension (Manifest V3) that collects all unique domains from links (`<a 
 | [icon.png](icon.png) | Extension toolbar icon. |
 | `supabase-config.js` | Supabase credentials (`SUPABASE_URL`, `SUPABASE_ANON_KEY`). **Gitignored**, not committed. |
 | [supabase-config.example.js](supabase-config.example.js) | Template for Supabase credentials, to be copied to `supabase-config.js`. |
-| [dashboard.html](dashboard.html) | Dashboard page (separate tab) to view, search, and export domains stored in Supabase. |
-| [dashboard.js](dashboard.js) | Fetch + render + search + export logic for the dashboard. |
+| [dashboard.html](dashboard.html) | Dashboard page (separate tab) to view, search, and export domains stored in Supabase, with pagination. |
+| [dashboard.js](dashboard.js) | Fetch logic (server-side pagination via PostgREST `Range` header) + render + search + export for the dashboard. |
 
 ## Supabase Integration
 
@@ -75,7 +75,7 @@ The **Save to Supabase** button no longer exists — domains from the output tex
 2. Copy [supabase-config.example.js](supabase-config.example.js) to `supabase-config.js`, then fill in `SUPABASE_URL` and `SUPABASE_ANON_KEY` from **Project Settings → API**.
 3. Reload the extension in `chrome://extensions`.
 4. Click **Scrape Current Page** or **Next Page** as usual — domains are sent to Supabase automatically, and the send result shows up in the popup's status text.
-5. Click **View Dashboard** to open a new tab with all stored domains (searchable and re-exportable to `.txt`).
+5. Click **View Dashboard** to open a new tab with stored domains, loaded page by page (50 rows) so it stays lightweight even with a lot of data — searchable (server-side) and re-exportable to `.txt` (export fetches all matching rows, not just the currently displayed page).
 
 `supabase-config.js` is already in [.gitignore](.gitignore) so the anon key doesn't get pushed to a public repo.
 
